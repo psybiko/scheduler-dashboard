@@ -5,6 +5,13 @@ import Loading from "./Loading";
 import Panel from "./Panel";
 import classnames from "classnames";
 
+import {
+  getTotalInterviews,
+  getLeastPopularTimeSlot,
+  getMostPopularDay,
+  getInterviewsPerDay
+ } from "helpers/selectors";
+
 const data = [
   {
     id: 1,
@@ -57,6 +64,19 @@ class Dashboard extends Component {
     if (previousState.focused !== this.state.focused) {
       localStorage.setItem("focused", JSON.stringify(this.state.focused));
     }
+
+    Promise.all([
+      axios.get("/api/days"),
+      axios.get("/api/appointments"),
+      axios.get("/api/interviewers")
+    ]).then(([days, appointments, interviewers]) => {
+      this.setState({
+        loading: false,
+        days: days.data,
+        appointments: appointments.data,
+        interviewers: interviewers.data
+      });
+    });
   }
   
    
@@ -64,11 +84,11 @@ class Dashboard extends Component {
     const dashboardClasses = classnames("dashboard", {
       "dashboard--focused": this.state.focused
     });
-
+    
     if (this.state.loading){
       return <Loading />
     }
-
+    
 
     const panels = data
     .filter(
